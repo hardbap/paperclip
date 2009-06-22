@@ -20,14 +20,18 @@ def for_all_attachments
   ids   = klass.connection.select_values(klass.send(:construct_finder_sql, :select => 'id'))
 
   ids.each do |id|
-    instance = klass.find(id)
-    names.each do |name|
-      result = if instance.send("#{ name }?")
-                 yield(instance, name)
-               else
-                 true
-               end
-      print result ? "." : "x"; $stdout.flush
+    begin
+      instance = klass.find(id)
+      names.each do |name|
+        result = if instance.send("#{ name }?")
+                   yield(instance, name)
+                 else
+                   true
+                 end
+        print result ? "." : "x"; $stdout.flush
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      puts e
     end
   end
   puts " Done."
