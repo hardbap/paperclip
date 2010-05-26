@@ -118,6 +118,34 @@ class StorageTest < Test::Unit::TestCase
     end
   end
 
+  context "Generating a url with an expiration for nil attachment" do
+    setup do
+      AWS::S3::Base.stubs(:establish_connection!)
+      rebuild_model :storage => :s3,
+                    :s3_credentials => {
+                      :production   => { :bucket => "prod_bucket" },
+                      :development  => { :bucket => "dev_bucket" }
+                    },
+                    :s3_host_alias => "something.something.com",
+                    :path => ":attachment/:basename.:extension",
+                    :url => ":s3_alias_url"
+
+      rails_env("production")
+
+      @dummy = Dummy.new
+    end
+
+    should "not raise exception" do
+      assert_nothing_raised do
+        @dummy.avatar.expiring_url
+      end
+    end
+
+    should "return nil" do
+      assert @dummy.avatar.expiring_url.nil?
+    end
+  end
+
   context "Parsing S3 credentials with a bucket in them" do
     setup do
       AWS::S3::Base.stubs(:establish_connection!)
